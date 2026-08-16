@@ -920,7 +920,6 @@ const App: React.FC = () => {
                     setIsSettingsOpen(false);
                   }}
                   initialTab={settingsInitialTab}
-                  initialIsPremium={null}
                   initialHasNativelyKey={hasNativelyApi}
                 />
                 <AnimatePresence>
