@@ -176,6 +176,7 @@ const App: React.FC = () => {
   // a single boolean so the IPC subscription + motion entrance don't fire
   // during the startup animation or while the main UI is still settling.
   const [showHindsightBanner, setShowHindsightBanner] = useState(false);
+  const [isProcessingMeeting, setIsProcessingMeeting] = useState(false);
   useEffect(() => {
     if (showStartup) return; // never schedule while startup is up
     const t = setTimeout(() => setShowHindsightBanner(true), 3000);

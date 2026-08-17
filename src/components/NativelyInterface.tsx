@@ -314,6 +314,7 @@ import {
   OVERLAY_OPACITY_DEFAULT,
 } from '../lib/overlayAppearance';
 import type { DynamicActionPayload } from '../types/electron';
+import { NegotiationCoachingCard } from './ui/NegotiationCoachingCard';
 import { getCodexCliModelDisplayName, litellmModelLabel } from '../utils/modelUtils';
 import { getModifierSymbol, isMac, isWindows } from '../utils/platformUtils';
 import { DynamicActionBar } from './dynamic-actions/DynamicActionBar';

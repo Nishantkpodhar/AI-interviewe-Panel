@@ -1085,6 +1085,7 @@ export const NativelyApiSettings: React.FC<NativelyApiSettingsProps> = ({ initia
           both the saved and unsaved states without its own header row. */}
 
       {/* ── Free Trial Modal (post-trial) ─────────────── */}
+      
       {showTrialModal && trialState && (
         <FreeTrialModal usage={trialState.usage} onByok={handleByok} onDone={handleTrialDone} />
       )}
