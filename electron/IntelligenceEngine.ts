@@ -1693,7 +1693,7 @@ export class IntelligenceEngine extends EventEmitter {
             // a plain identity/profile fact ("who are you?", "what's your name?",
             // "where did you study?"), derive the grounding straight from the
             // structured résumé via the manual fast-path builder. Without this, an
-            // empty candidateProfile lets the model answer "I'm Natively, an AI
+            // empty candidateProfile lets the model answer "I'm AIAssistent, an AI
             // assistant" or "I can't share that" — the exact benchmark failures.
             // This supplies FACTS only; the first-person VOICE is owned by the
             // WhatToAnswer prompt. Best-effort and fully guarded.
@@ -3470,7 +3470,7 @@ export class IntelligenceEngine extends EventEmitter {
 
             // Phase 4/7: profile-OUTPUT safety net for the what-to-answer path. The
             // interview-copilot surface must NEVER answer a candidate question as
-            // "Natively / an AI assistant", and must NEVER falsely refuse ("I can't
+            // "AIAssistent / an AI assistant", and must NEVER falsely refuse ("I can't
             // share that", "I don't have your resume loaded") when the profile IS
             // loaded. These are CRITICAL correctness failures, so — unlike the
             // log-only manual evidence check — we REPAIR them here with ONE bounded
@@ -3654,7 +3654,7 @@ export class IntelligenceEngine extends EventEmitter {
             }
 
             // Release 2026-06-07c: FINAL candidate-answer sanitizer on the WTA path —
-            // strip an assistant-meta tail ("as an AI assistant", "I'm Natively", "I
+            // strip an assistant-meta tail ("as an AI assistant", "I'm AIAssistent", "I
             // can't share") from a candidate-voice answer.
             if (CANDIDATE_VOICE_ANSWER_TYPES.has(answerPlan.answerType)) {
                 try {
@@ -3697,7 +3697,7 @@ export class IntelligenceEngine extends EventEmitter {
             // instead, never the bare refusal (PRODUCT_ABOUT_TEMPLATE already instructs this;
             // M3 over-applies the system-prompt refusal). Mirror of the manual-path backstop.
             if (answerPlan.answerType === 'project_about_answer' || answerPlan.answerType === 'project_answer') {
-                if (/^\s*(?:I(?:'m| am) Natively[.,]?\s*(?:an? AI assistant[.,]?\s*)?)?I\s+(?:cannot|can\s?not|can'?t)\s+share\s+that(?:\s+information)?\s*\.?\s*$/i.test(fullAnswer.trim())) {
+                if (/^\s*(?:I(?:'m| am) AIAssistent[.,]?\s*(?:an? AI assistant[.,]?\s*)?)?I\s+(?:cannot|can\s?not|can'?t)\s+share\s+that(?:\s+information)?\s*\.?\s*$/i.test(fullAnswer.trim())) {
                     fullAnswer = "I don't have that product detail in my loaded context. I can only speak to what's in the loaded project description.";
                     trace.mark('repair_used', { reason: 'product_about_refusal_repaired' });
                 }
@@ -3708,7 +3708,7 @@ export class IntelligenceEngine extends EventEmitter {
             // answers speak in the ASSISTANT's voice and so bypass the candidate
             // sanitizer above. Smaller models over-apply the prompt's identity reply to
             // short, context-free questions ("who owns the next step", "now optimize
-            // it") and emit "I'm Natively, an AI assistant" / "I can't share that"
+            // it") and emit "I'm AIAssistent, an AI assistant" / "I can't share that"
             // instead of a real answer. Replace that misfire with an honest line — the
             // manual path (ipcHandlers) applies the identical guard.
             if (ASSISTANT_VOICE_ANSWER_TYPES.has(answerPlan.answerType)) {
