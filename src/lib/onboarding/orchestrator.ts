@@ -640,6 +640,23 @@ export class OnboardingOrchestrator {
     };
   }
 
+  /**
+   * Clear the active toaster slot on a clean app shutdown. The active slot is
+   * only non-null while a toaster is genuinely on screen; persisting it across
+   * a NORMAL close would make the next cold launch's loadState() see a "stale"
+   * toaster. We no longer auto-complete stale toasters (see persistence.ts),
+   * but clearing here on a controlled unload means crash recovery only ever
+   * fires for genuine crashes — and the toaster is shown again on the next
+   * launch instead of being silently dropped. Does NOT mark the toaster
+   * completed; the orchestrator re-evaluates eligibility on boot.
+   */
+  clearActiveToasterOnShutdown(): void {
+    if (this.state.activeToasterId !== null) {
+      this.state.activeToasterId = null;
+      this.persist();
+    }
+  }
+
   private persist(): void {
     saveState(this.state);
   }

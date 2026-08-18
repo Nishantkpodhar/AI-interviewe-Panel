@@ -75,18 +75,23 @@ export function loadState(): OrchestratorState {
 
     if (raw && version === VERSION) {
       const parsed = JSON.parse(raw);
-      // Crash recovery: if the prior session died with an active toaster,
-      // that toaster is stale. Mark it as completed (timestamp of recovery)
-      // and clear the slot so the orchestrator re-evaluates from a clean state.
+      // Crash recovery: the active slot is non-null ONLY while a toaster is
+      // genuinely on screen (it's cleared on explicit dismiss in
+      // completeToaster()). A non-null value at cold launch therefore means the
+      // previous session ended with a toaster still open — NOT that the user
+      // completed it. Treat the slot as stale and clear it so the orchestrator
+      // re-evaluates and re-shows the toaster. Critically, we must NOT
+      // auto-complete it: doing so silently drops a once-ever step (e.g.
+      // `permissions`) on every normal restart where the window was closed
+      // while the toaster was visible. The misleading "Recovered from crash"
+      // log was masking exactly this data loss.
       const recoveredCompleted = { ...(parsed.completed ?? {}) };
       let recoveredActive = parsed.activeToasterId ?? null;
       if (recoveredActive) {
         console.log(
-          '[OnboardingPersistence] Recovered from crash with active toaster:',
+          '[OnboardingPersistence] Clearing stale active toaster from previous session (not auto-completed):',
           recoveredActive,
-          '— auto-completing.',
         );
-        recoveredCompleted[recoveredActive] = Date.now();
         recoveredActive = null;
       }
       return {
@@ -234,4 +239,28 @@ export function _clearAllForTests(): void {
     localStorage.removeItem(KEYS.version);
     localStorage.removeItem(KEYS.legacySweepAt);
   } catch { /* ignore */ }
+}
+
+/**
+ * Clears the in-flight active toaster slot as part of a CLEAN shutdown
+ * (called from the renderer's beforeunload handler). This distinguishes a
+ * normal quit — where a toaster may still be on screen — from a hard crash.
+ * Because we clear here, any non-null activeToasterId found by loadState()
+ * on the NEXT launch genuinely indicates an abnormal termination (crash),
+ * rather than a routine "closed the window with a toaster open".
+ *
+ * Note: we only clear the active slot on shutdown; we do NOT auto-complete it.
+ * A toaster closed at shutdown is simply re-shown (and re-evaluated) on the
+ * next launch. This is the safe, non-data-loss behaviour for once-ever steps.
+ */
+export function clearActiveToasterOnShutdown(): void {
+  try {
+    const raw = localStorage.getItem(KEYS.state);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.activeToasterId) {
+      parsed.activeToasterId = null;
+      localStorage.setItem(KEYS.state, JSON.stringify(parsed));
+    }
+  } catch { /* best-effort */ }
 }

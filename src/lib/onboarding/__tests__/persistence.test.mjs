@@ -180,17 +180,22 @@ test('multiple legacy keys hydrate together', () => {
   assert.equal(state.startupCount, 4);
 });
 
-test('crash recovery: stale activeToasterId is auto-completed and cleared', () => {
+test('crash recovery: stale activeToasterId is cleared (NOT auto-completed)', () => {
   clearAll();
-  // Simulate a previous session that crashed while showing 'permissions'
+  // Simulate a previous session that ended with 'permissions' still open.
   const prior = buildDefaultState();
   prior.activeToasterId = 'permissions';
   prior.startupCount = 2;
   saveState(prior);
 
   const recovered = loadState();
-  assert.equal(recovered.activeToasterId, null, 'stale active should be cleared');
-  assert.ok(recovered.completed['permissions'], 'stale active should be auto-completed');
+  assert.equal(recovered.activeToasterId, null, 'stale active slot should be cleared');
+  // The stale toaster is cleared, NOT silently marked complete. Auto-completing
+  // it on every normal restart (window closed while toaster visible) would
+  // silently drop a once-ever step. The orchestrator re-evaluates and re-shows
+  // it on the next launch. (A genuine crash recovery is now distinguished from a
+  // clean shutdown by clearActiveToasterOnShutdown().)
+  assert.equal(recovered.completed['permissions'], undefined, 'stale active must NOT be auto-completed');
   // startupCount preserved
   assert.equal(recovered.startupCount, 2);
 });
@@ -206,6 +211,8 @@ test('crash recovery: queue + other completed entries preserved', () => {
   const recovered = loadState();
   assert.equal(recovered.activeToasterId, null);
   assert.ok(recovered.completed['permissions']);
-  assert.ok(recovered.completed['browser_extension']);
+  // browser_extension was the stale active toaster — it is cleared, NOT
+  // auto-completed, so it stays pending and re-shows on the next launch.
+  assert.equal(recovered.completed['browser_extension'], undefined);
   assert.deepEqual(recovered.queue, ['profile_intelligence', 'modes_manager', 'trial_promo']);
 });

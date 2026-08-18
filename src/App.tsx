@@ -149,6 +149,12 @@ const App: React.FC = () => {
       }
       if (isLauncherWindow || isDefault) {
         analytics.trackAppClose();
+        // Clear the active onboarding toaster slot on a clean shutdown so the
+        // next cold launch's crash-recovery path (persistence.loadState) does
+        // not misinterpret a normal close-with-toaster-open as a crash and
+        // silently drop a once-ever toaster. The orchestrator re-evaluates and
+        // re-shows it on the next launch.
+        getOrchestrator().clearActiveToasterOnShutdown();
       }
     };
 
